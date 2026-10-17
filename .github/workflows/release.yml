@@ -1,0 +1,86 @@
+name: Release
+
+# Push a tag like v0.1.0 (or run it by hand with a tag name) to build a universal macOS binary,
+# test it and publish a GitHub release.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, e.g. v0.1.0 (created on the selected branch if it does not exist)
+        required: true
+      replace:
+        description: Move an existing tag with this name to this commit and replace the release files
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-15
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the version matches the tag
+        run: |
+          version=$(sed -n 's/.*static let version = "\(.*\)".*/\1/p' Sources/clones/Clones.swift)
+          test "v$version" = "$TAG" || { echo "Clones.version is $version but the tag is $TAG"; exit 1; }
+
+      - name: Unit tests
+        run: swift test
+
+      - name: End-to-end tests
+        run: ./scripts/e2e.sh
+
+      - name: Build universal binary
+        run: |
+          swift build -c release --arch arm64 --arch x86_64
+          mkdir -p dist
+          cp .build/apple/Products/Release/clones dist/clones
+          codesign --force --sign - dist/clones
+          lipo -info dist/clones
+          dist/clones --version
+
+      - name: Package
+        run: |
+          cd dist
+          tar -czf clones-macos.tar.gz clones
+          shasum -a 256 clones-macos.tar.gz > clones-macos.tar.gz.sha256
+          cat clones-macos.tar.gz.sha256
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPLACE: ${{ github.event.inputs.replace }}
+        run: |
+          notes=$(awk -v tag="$TAG" '$0 ~ "^## " tag {found=1; next} found && /^## /{exit} found' CHANGELOG.md)
+          ref="repos/$GITHUB_REPOSITORY/git/refs/tags/$TAG"
+          if [ "$REPLACE" = "true" ] && gh api "$ref" >/dev/null 2>&1; then
+            # Re-point the existing tag at this commit; the release follows its tag.
+            gh api -X PATCH "$ref" -f sha="$GITHUB_SHA" -F force=true >/dev/null
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/clones-macos.tar.gz dist/clones-macos.tar.gz.sha256 --clobber
+            gh release edit "$TAG" --title "clones ${TAG#v}" --notes "$notes"
+          else
+            # Creates the tag on the built commit if it does not exist yet (manual runs).
+            gh release create "$TAG" dist/clones-macos.tar.gz dist/clones-macos.tar.gz.sha256 \
+              --target "$GITHUB_SHA" --title "clones ${TAG#v}" --notes "$notes"
+          fi
+
+      - name: Check the tag points at the built commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tagged=$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq .sha)
+          echo "$TAG -> $tagged (built $GITHUB_SHA)"
+          test "$tagged" = "$GITHUB_SHA" || { echo "$TAG points at another commit; run again with replace"; exit 1; }

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="661" height="324" viewBox="0 0 661 324" role="img" aria-label="clones in a terminal">
+<rect width="661" height="324" rx="10" fill="#1e1e22"/>
+<rect width="661" height="30" rx="10" fill="#2b2b31"/><rect y="20" width="661" height="10" fill="#2b2b31"/>
+<circle cx="18" cy="15" r="6" fill="#ff5f57"/><circle cx="38" cy="15" r="6" fill="#febc2e"/><circle cx="58" cy="15" r="6" fill="#28c840"/>
+<text x="330.5" y="19" fill="#9a9aa2" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" text-anchor="middle">zsh</text>
+<g font-family="SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="14" xml:space="preserve" style="white-space:pre">
+<text y="46"><tspan x="18.0" fill="#c98bff" font-weight="bold">$ </tspan><tspan x="34.8" fill="#e6e6e6" font-weight="bold">clones add work</tspan></text>
+<text y="66"><tspan x="18.0" fill="#e6e6e6">Профиль </tspan><tspan x="85.2" fill="#E5484D">● </tspan><tspan x="102.0" fill="#e6e6e6" font-weight="bold">work</tspan><tspan x="135.6" fill="#e6e6e6"> создан: ~/.clones/work</tspan></text>
+<text y="86"><tspan x="18.0" fill="#e6e6e6">Лаунчер: /Applications/Claude Work.app — закрепите его в Dock</tspan></text>
+<text y="106"><tspan x="18.0" fill="#8b8b8b">Запуск: clones run work   •   первый вход в аккаунт: clones login work</tspan></text>
+<text y="146"><tspan x="18.0" fill="#c98bff" font-weight="bold">$ </tspan><tspan x="34.8" fill="#e6e6e6" font-weight="bold">clones run work</tspan></text>
+<text y="166"><tspan x="18.0" fill="#e6e6e6">«work» запущен (PID 4211).</tspan></text>
+<text y="206"><tspan x="18.0" fill="#c98bff" font-weight="bold">$ </tspan><tspan x="34.8" fill="#e6e6e6" font-weight="bold">clones ls</tspan></text>
+<text y="226"><tspan x="18.0" fill="#8b8b8b">NAME      STATUS   PID     SIZE  MCP  APP</tspan></text>
+<text y="246"><tspan x="18.0" fill="#e6e6e6">default   </tspan><tspan x="102.0" fill="#8b8b8b">stopped</tspan><tspan x="160.8" fill="#e6e6e6">     -   1.2 GB    3  </tspan><tspan x="345.6" fill="#8b8b8b">-</tspan></text>
+<text y="266"><tspan x="18.0" fill="#30A46C">● </tspan><tspan x="34.8" fill="#e6e6e6">personal  </tspan><tspan x="118.8" fill="#5fd17a">running</tspan><tspan x="177.6" fill="#e6e6e6">  4188   180 MB    0  /Applications/Claude Personal.app</tspan></text>
+<text y="286"><tspan x="18.0" fill="#E5484D">● </tspan><tspan x="34.8" fill="#e6e6e6">work      </tspan><tspan x="118.8" fill="#5fd17a">running</tspan><tspan x="177.6" fill="#e6e6e6">  4211   310 MB    5  /Applications/Claude Work.app</tspan></text>
+</g>
+</svg>

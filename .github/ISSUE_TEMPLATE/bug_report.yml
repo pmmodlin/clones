@@ -1,0 +1,44 @@
+name: Bug report / Сообщить об ошибке
+description: Something does not work as expected / Что-то работает не так
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Please remove names, emails and other personal data from the output below.
+        Спасибо! Уберите из вывода ниже имена, email и другие личные данные.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / Что случилось?
+      description: What you did, what you expected and what happened instead. / Что делали, что ожидали и что получилось.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Как повторить
+      placeholder: |
+        1. clones add work
+        2. clones run work
+        3. ...
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `clones doctor` / Вывод `clones doctor`
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: ls
+    attributes:
+      label: Output of `clones ls` / Вывод `clones ls`
+      render: text
+  - type: input
+    id: versions
+    attributes:
+      label: Versions / Версии
+      description: "`clones --version`, macOS version, Apple silicon or Intel / версия macOS, Apple Silicon или Intel"
+      placeholder: clones 0.1.0, macOS 15.6, Apple silicon
+    validations:
+      required: true

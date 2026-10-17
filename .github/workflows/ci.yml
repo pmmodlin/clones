@@ -1,0 +1,41 @@
+name: CI
+
+# Pull requests and manual runs only: a release is tested by release.yml itself.
+on:
+  pull_request:
+  workflow_dispatch:
+
+# A newer run for the same branch or PR cancels the older one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Swift version
+        run: swift --version
+      - name: Build (universal arm64 + x86_64)
+        run: swift build -c release --arch arm64 --arch x86_64
+      - name: Unit tests
+        run: swift test
+      - name: E2E on fake Claude.app (NSWorkspace, sysctl, AppKit icons)
+        run: ./scripts/e2e.sh
+      - name: Completion script
+        run: swift run clones completion zsh | head -3
+
+  linux:
+    runs-on: ubuntu-24.04
+    container: swift:6.0-noble
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: apt-get update && apt-get install -y --no-install-recommends lsof procps python3 clang
+      - name: Build
+        run: swift build
+      - name: Unit tests
+        run: swift test
+      - name: E2E on fake Claude.app
+        run: ./scripts/e2e.sh
