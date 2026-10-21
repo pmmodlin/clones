@@ -1,9 +1,9 @@
-# Formula for later: fill in url/sha256 after the first release (git tag v0.1.0)
+# Formula for later: fill in url/sha256 after the first release (git tag v0.1.1)
 # and put it into a tap: brew tap pmmodlin/tap && brew install clones.
 class Clones < Formula
   desc "Run several isolated Claude Desktop instances side by side"
   homepage "https://github.com/pmmodlin/clones"
-  url "https://github.com/pmmodlin/clones/archive/refs/tags/v0.1.0.tar.gz"
+  url "https://github.com/pmmodlin/clones/archive/refs/tags/v0.1.1.tar.gz"
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"
   license "MIT"
   head "https://github.com/pmmodlin/clones.git", branch: "main"

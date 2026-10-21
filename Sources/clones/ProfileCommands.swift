@@ -58,7 +58,7 @@ struct New: ParsableCommand {
         let ctx = try Context()
         var env: [String: String]?
         if isolateClaudeCode {
-            env = ["CLAUDE_CONFIG_DIR": ctx.store.dataDir(for: name).appendingPathComponent("claude-code").path]
+            env = ["CLAUDE_CONFIG_DIR": ctx.store.dataDir(for: name).appendingPathComponent(Profile.claudeCodeDirName).path]
         }
         let profile = try ctx.store.create(name: name, color: color, iconPath: icon, title: title,
                                            env: env, cloneMCPFrom: cloneMCPFrom)

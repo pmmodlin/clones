@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.1.1
+
+- **Fix: Claude Code sessions and skills of a profile could disappear.** v0.1.0 kept a profile's
+  Claude Code data (`CLAUDE_CONFIG_DIR`) in `~/.clones/<name>/claude-code`. Claude Desktop keeps
+  the Claude Code versions it downloads in that same folder and deletes everything else there when
+  it updates them: session transcripts, skills, settings. Profiles now use
+  `~/.clones/<name>/claude-config`. Existing profiles move there automatically the next time any
+  clones command runs while the profile is closed; `clones doctor` reports profiles that still need it.
+- `clones doctor` warns when `~/Library/Application Support/Claude` is a link to a missing folder.
+
 ## v0.1.0
 
 First release.
@@ -8,7 +18,7 @@ First release.
   MCP servers and cache in `~/.clones/<name>`: `clones add`, `run`, `login`, `ls`, `kill`, `rm`,
   `rename`, `config`, `dir`.
 - **Its own Claude Code.** The Code tab of each profile keeps skills, settings and sessions in
-  `~/.clones/<name>/claude-code` (`--no-isolate-claude-code` shares `~/.claude`).
+  `~/.clones/<name>/claude-code` (`--no-isolate-claude-code` shares `~/.claude`). Fixed in v0.1.1: do not use it.
 - **Dock icons.** Every profile gets a launcher in /Applications and a Claude.app copy named after it,
   so a running profile shows up as “Claude Work” with its own badge in the Dock and ⌘Tab.
   The first profile also adds “Claude Default” for your regular Claude.

@@ -56,7 +56,7 @@ public enum LayoutMigration {
             let script = launcher.url.appendingPathComponent("Contents/MacOS/launcher")
             if let text = try? String(contentsOf: script, encoding: .utf8), text.contains(old.bundlesDir.path) {
                 try? text.replacingOccurrences(of: old.bundlesDir.path, with: new.bundlesDir.path)
-                    .write(to: script, atomically: true, encoding: .utf8)
+                    .write(to: script, atomically: false, encoding: .utf8)
             }
         }
 

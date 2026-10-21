@@ -149,6 +149,15 @@ struct Doctor: ParsableCommand {
                                "«\(profile.name)»: claude_desktop_config.json нет (MCP-серверов нет)"))
             }
         }
+        for profile in ClaudeCodeDirMigration.affected(in: ctx.store) {
+            report(.fail, tr("“\(profile.name)”: Claude Code lives in \(ctx.paths.abbreviate(ClaudeCodeDirMigration.desktopDir(of: profile))), which Claude Desktop clears when it updates. Quit the profile (clones kill \(profile.name)) and run any clones command to move it.",
+                             "«\(profile.name)»: Claude Code лежит в \(ctx.paths.abbreviate(ClaudeCodeDirMigration.desktopDir(of: profile))), а её Claude Desktop очищает при обновлении. Закройте профиль (clones kill \(profile.name)) и запустите любую команду clones — данные переедут."))
+        }
+        if let target = try? FileManager.default.destinationOfSymbolicLink(atPath: ctx.paths.defaultUserData.path),
+           !FileManager.default.fileExists(atPath: ctx.paths.defaultUserData.path) {
+            report(.warn, tr("\(ctx.paths.abbreviate(ctx.paths.defaultUserData)) is a link to the missing \(target); plain Claude may misbehave. If you no longer need it: rm \"\(ctx.paths.defaultUserData.path)\"",
+                             "\(ctx.paths.abbreviate(ctx.paths.defaultUserData)) — ссылка на несуществующую \(target); обычный Claude может работать странно. Если она не нужна: rm \"\(ctx.paths.defaultUserData.path)\""))
+        }
         for orphan in ctx.store.orphanDirectories() {
             report(.warn, tr("folder \(ctx.paths.abbreviate(orphan)) belongs to no profile (remove it if you do not need it)",
                              "папка \(ctx.paths.abbreviate(orphan)) не принадлежит ни одному профилю (удалите вручную, если не нужна)"))
@@ -200,8 +209,8 @@ struct Doctor: ParsableCommand {
         // MARK: Shared locations
         section(tr("Shared by all profiles (not isolated)", "Общее для всех профилей (не изолируется)"))
         let shared: [(String, String)] = [
-            ("~/.claude", tr("Claude Code of plain Claude, the terminal claude CLI and profiles made with --no-isolate-claude-code (other profiles have their own claude-code folder)",
-                             "Claude Code обычного Claude, CLI claude в терминале и профилей, созданных с --no-isolate-claude-code (у остальных профилей своя папка claude-code)")),
+            ("~/.claude", tr("Claude Code of plain Claude, the terminal claude CLI and profiles made with --no-isolate-claude-code (other profiles have their own claude-config folder)",
+                             "Claude Code обычного Claude, CLI claude в терминале и профилей, созданных с --no-isolate-claude-code (у остальных профилей своя папка claude-config)")),
             ("~/Documents/Claude", tr("Cowork files: scheduled tasks, live artifacts", "файлы Cowork: scheduled tasks, live artifacts")),
             ("~/Claude Projects", tr("Code/Cowork working folders (incl. MCP Exchange); Claude Code asks to trust them in each profile",
                                      "рабочие папки Code/Cowork (в т.ч. MCP Exchange) — Claude Code спрашивает доверие к ним в каждом профиле")),

@@ -171,7 +171,7 @@ Do not sign in to the same account in two profiles; they will get in each other'
 ### Where are my profiles stored?
 
 In `~/.clones/<profile>` (a hidden folder in your home folder; in Finder press ⌘⇧. to show it).
-Each profile's Claude Code skills and settings are in `~/.clones/<profile>/claude-code`.
+Each profile's Claude Code skills and settings are in `~/.clones/<profile>/claude-config`.
 `clones dir work` prints the exact path. Plain Claude (`default`) stays where it always was.
 
 ### How do I rename a profile or change its color?

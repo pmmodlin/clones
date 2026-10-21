@@ -126,7 +126,7 @@ final class ClonesCoreTests: XCTestCase {
         let fm = FileManager.default
         let legacy = Paths.legacy(home: root, defaultUserData: paths.defaultUserData, applicationsDir: paths.applicationsDir)
         let oldStore = try ProfileStore(paths: legacy)
-        let work = try oldStore.create(name: "work", env: ["CLAUDE_CONFIG_DIR": oldStore.dataDir(for: "work").appendingPathComponent("claude-code").path])
+        let work = try oldStore.create(name: "work", env: ["CLAUDE_CONFIG_DIR": oldStore.dataDir(for: "work").appendingPathComponent("claude-config").path])
         try Data("{}".utf8).write(to: work.dataDir.appendingPathComponent("Local State"))
         let iconSource = root.appendingPathComponent("me.png")
         try Data([1, 2, 3]).write(to: iconSource)
@@ -140,7 +140,7 @@ final class ClonesCoreTests: XCTestCase {
         let store = try ProfileStore(paths: target)
         let moved = try store.profile(named: "work")
         XCTAssertTrue(fm.fileExists(atPath: moved.dataDir.appendingPathComponent("Local State").path))
-        XCTAssertEqual(moved.environment["CLAUDE_CONFIG_DIR"], moved.dataDir.appendingPathComponent("claude-code").path)
+        XCTAssertEqual(moved.environment["CLAUDE_CONFIG_DIR"], moved.dataDir.appendingPathComponent("claude-config").path)
         XCTAssertTrue(moved.meta?.icon?.hasPrefix(target.iconsDir.path) == true)
         XCTAssertTrue(fm.fileExists(atPath: moved.meta!.icon!))
         XCTAssertTrue(fm.fileExists(atPath: target.bundlesDir.appendingPathComponent("work/Claude Work.app").path))
@@ -151,10 +151,43 @@ final class ClonesCoreTests: XCTestCase {
 
     func testRenameMovesClaudeCodeDir() throws {
         let store = try ProfileStore(paths: paths)
-        try store.create(name: "work", env: ["CLAUDE_CONFIG_DIR": store.dataDir(for: "work").appendingPathComponent("claude-code").path])
+        try store.create(name: "work", env: ["CLAUDE_CONFIG_DIR": store.dataDir(for: "work").appendingPathComponent("claude-config").path])
         try store.rename("work", to: "job")
         XCTAssertEqual(try store.profile(named: "job").environment["CLAUDE_CONFIG_DIR"],
-                       store.dataDir(for: "job").appendingPathComponent("claude-code").path)
+                       store.dataDir(for: "job").appendingPathComponent("claude-config").path)
+    }
+
+    func testClaudeCodeDirMovesOutOfDesktopFolder() throws {
+        let fm = FileManager.default
+        let store = try ProfileStore(paths: paths)
+        let old = store.dataDir(for: "work").appendingPathComponent("claude-code")
+        try store.create(name: "work", env: ["CLAUDE_CONFIG_DIR": old.path])
+        try store.create(name: "fresh", env: ["CLAUDE_CONFIG_DIR": store.dataDir(for: "fresh").appendingPathComponent("claude-config").path])
+        XCTAssertEqual(ClaudeCodeDirMigration.affected(in: store).map(\.name), ["work"])
+
+        for dir in ["2.1.304", "projects/-Users-me-app", "skills/hig"] {
+            try fm.createDirectory(at: old.appendingPathComponent(dir), withIntermediateDirectories: true)
+        }
+        try Data("{}".utf8).write(to: old.appendingPathComponent("projects/-Users-me-app/s.jsonl"))
+        try Data("{}".utf8).write(to: old.appendingPathComponent(".claude.json"))
+        let launcher = paths.applicationsDir.appendingPathComponent("Claude Work.app/Contents")
+        try fm.createDirectory(at: launcher.appendingPathComponent("MacOS"), withIntermediateDirectories: true)
+        let plist: [String: Any] = ["CFBundleIdentifier": AppBuilder.bundleIDPrefix + "work", "ClonesProfile": "work"]
+        try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+            .write(to: launcher.appendingPathComponent("Info.plist"))
+        try "exec open --env 'CLAUDE_CONFIG_DIR=\(old.path)'\n".write(to: launcher.appendingPathComponent("MacOS/launcher"), atomically: false, encoding: .utf8)
+
+        try ClaudeCodeDirMigration.migrate(try store.profile(named: "work"), store: store)
+        let work = try store.profile(named: "work")
+        XCTAssertEqual(work.environment["CLAUDE_CONFIG_DIR"], work.claudeCodeDir.path)
+        XCTAssertTrue(fm.fileExists(atPath: work.claudeCodeDir.appendingPathComponent("projects/-Users-me-app/s.jsonl").path))
+        XCTAssertTrue(fm.fileExists(atPath: work.claudeCodeDir.appendingPathComponent("skills/hig").path))
+        XCTAssertTrue(fm.fileExists(atPath: work.claudeCodeDir.appendingPathComponent(".claude.json").path))
+        XCTAssertTrue(fm.fileExists(atPath: old.appendingPathComponent("2.1.304").path), "Claude Desktop's versions stay")
+        XCTAssertFalse(fm.fileExists(atPath: old.appendingPathComponent("projects").path))
+        let script = try String(contentsOf: launcher.appendingPathComponent("MacOS/launcher"), encoding: .utf8)
+        XCTAssertTrue(script.contains("CLAUDE_CONFIG_DIR=\(work.claudeCodeDir.path)'"))
+        XCTAssertTrue(ClaudeCodeDirMigration.affected(in: store).isEmpty)
     }
 
     func testCloneMCP() throws {

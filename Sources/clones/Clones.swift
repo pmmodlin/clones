@@ -4,7 +4,7 @@ import Foundation
 
 @main
 struct Clones: ParsableCommand {
-    static let version = "0.1.0"
+    static let version = "0.1.1"
 
     static let configuration = CommandConfiguration(
         commandName: "clones",
@@ -13,11 +13,11 @@ struct Clones: ParsableCommand {
         discussion: tr("""
         Each profile is a separate Claude userData folder (--user-data-dir): its own sign-in, chats, \
         claude_desktop_config.json with MCP servers, settings and cache. The “default” profile is plain Claude.
-        Profiles live in ~/.clones/<name> (with Claude Code in ~/.clones/<name>/claude-code).
+        Profiles live in ~/.clones/<name> (with Claude Code in ~/.clones/<name>/claude-config).
         """, """
         Каждый профиль — отдельная userData-папка Claude (--user-data-dir): свой логин, чаты, \
         claude_desktop_config.json с MCP-серверами, настройки и кэш. Профиль «default» — обычный Claude.
-        Профили лежат в ~/.clones/<name> (Claude Code профиля — в ~/.clones/<name>/claude-code).
+        Профили лежат в ~/.clones/<name> (Claude Code профиля — в ~/.clones/<name>/claude-config).
         """),
         version: version,
         subcommands: [
@@ -37,6 +37,34 @@ struct Context {
         style = Style.detect()
         errStyle = Style.detect(fd: STDERR_FILENO)
         store = try ProfileStore(paths: Context.resolvePaths(errStyle: errStyle))
+        moveClaudeCodeDirs()
+    }
+
+    /// Profiles made by clones 0.1.0 keep Claude Code in a folder Claude Desktop wipes on updates; move closed ones out.
+    private func moveClaudeCodeDirs() {
+        let affected = ClaudeCodeDirMigration.affected(in: store)
+        guard !affected.isEmpty else { return }
+        let map = instances(app: try? claudeApp())
+        for profile in affected {
+            let old = paths.abbreviate(ClaudeCodeDirMigration.desktopDir(of: profile))
+            let new = paths.abbreviate(profile.claudeCodeDir)
+            if map.pid(for: profile) != nil {
+                warn(tr("“\(profile.name)” keeps Claude Code in \(old), which Claude Desktop clears when it updates. Quit the profile (clones kill \(profile.name)) and clones will move it to \(new).",
+                        "«\(profile.name)» хранит Claude Code в \(old), а эту папку Claude Desktop очищает при обновлении. Закройте профиль (clones kill \(profile.name)), и clones перенесёт данные в \(new)."))
+                continue
+            }
+            do {
+                let skipped = try ClaudeCodeDirMigration.migrate(profile, store: store)
+                FileHandle.standardError.write(Data(tr("“\(profile.name)”: Claude Code moved from \(old) to \(new)\n",
+                                                       "«\(profile.name)»: Claude Code перенесён из \(old) в \(new)\n").utf8))
+                if !skipped.isEmpty {
+                    warn(tr("left in \(old) because \(new) already has them: \(skipped.joined(separator: ", "))",
+                            "оставлены в \(old), потому что в \(new) такие уже есть: \(skipped.joined(separator: ", "))"))
+                }
+            } catch {
+                warn(tr("“\(profile.name)”: could not move Claude Code to \(new): \(error)", "«\(profile.name)»: не удалось перенести Claude Code в \(new): \(error)"))
+            }
+        }
     }
 
     /// `~/.clones`, migrating an early-build layout first when no Claude instance is open.

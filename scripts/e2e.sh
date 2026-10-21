@@ -90,7 +90,7 @@ check "a second run work does not start another process" bash -c "'$CLONES' run 
 COPIES="$CLONES_HOME/.bundles.noindex"
 exe_of() { ps -o args= -p "$1" | sed 's/ --user-data-dir=.*//'; }
 check "work runs from its own Claude Work.app copy" bash -c "[[ \"\$(ps -o args= -p $W)\" == '$COPIES/work/Claude Work.app/Contents/MacOS/Claude '* ]]"
-check "work gets its own Claude Code folder (CLAUDE_CONFIG_DIR)" bash -c "grep -q 'clones-home/work/claude-code' '$(dir_of work)/claude-config-dir.txt'"
+check "work gets its own Claude Code folder (CLAUDE_CONFIG_DIR)" bash -c "grep -q 'clones-home/work/claude-config' '$(dir_of work)/claude-config-dir.txt'"
 check "default keeps the shared ~/.claude" bash -c "[ ! -s '$(dir_of default)/claude-config-dir.txt' ]"
 check "default runs from its Claude Default copy, without --user-data-dir" bash -c "[[ \"\$(ps -o args= -p $D)\" == '$COPIES/default/Claude Default.app/Contents/MacOS/Claude' ]]"
 echo "  ps:"
@@ -174,6 +174,21 @@ check "--no-copy: profile runs from the original Claude.app" bash -c "[[ \"\$(ps
 check "--no-isolate-claude-code: shared ~/.claude" bash -c "sleep 0.5; [ ! -s '$(dir_of plain)/claude-config-dir.txt' ]"
 "$CLONES" rm plain --force >/dev/null
 check "MCP server survived the rename" grep -q e2e-only-work "$(dir_of job)/claude_desktop_config.json"
+
+# clones 0.1.0 put CLAUDE_CONFIG_DIR into <profile>/claude-code, the folder Claude Desktop clears on updates.
+JOB="$(dir_of job)"
+OLD_CC="$JOB/claude-code"
+mkdir -p "$OLD_CC/2.1.304" "$OLD_CC/projects/p"
+echo '{}' > "$OLD_CC/projects/p/s.jsonl"
+"$CLONES" run job >/dev/null
+python3 -c "import json,sys; f=sys.argv[1]; c=json.load(open(f)); c['profiles']['job']['env']={'CLAUDE_CONFIG_DIR': sys.argv[2]}; json.dump(c, open(f,'w'))" "$CLONES_HOME/.config.json" "$OLD_CC"
+check "a running 0.1.0-style profile is left alone, with a warning" bash -c "'$CLONES' ls --no-size 2>&1 | grep -q 'clears when it updates' && [ -e '$OLD_CC/projects/p/s.jsonl' ]"
+"$CLONES" kill job >/dev/null 2>&1
+check "once closed, its Claude Code moves to claude-config" bash -c "'$CLONES' ls --no-size 2>&1 | grep -q 'Claude Code moved' && [ -e '$JOB/claude-config/projects/p/s.jsonl' ] && [ -d '$OLD_CC/2.1.304' ] && [ ! -e '$OLD_CC/projects' ]"
+check "the launcher's fallback points at claude-config" bash -c "grep -q 'job/claude-config' '$CLONES_APPS_DIR/Claude Job.app/Contents/MacOS/launcher' && [ -x '$CLONES_APPS_DIR/Claude Job.app/Contents/MacOS/launcher' ]"
+"$CLONES" run job >/dev/null
+check "job now runs with CLAUDE_CONFIG_DIR=claude-config" bash -c "sleep 0.5; grep -q 'job/claude-config' '$JOB/claude-config-dir.txt'"
+"$CLONES" kill job >/dev/null
 
 step "5. doctor, kill --all, copy guard"
 "$CLONES" doctor || true

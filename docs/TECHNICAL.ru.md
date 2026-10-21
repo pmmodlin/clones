@@ -17,7 +17,7 @@
 
 | Что | Где | Зачем |
 |---|---|---|
-| Данные | `~/.clones/<name>/` | userData: вход, чаты, настройки, кэш, MCP-конфиг; внутри `claude-code/` — папка Claude Code профиля |
+| Данные | `~/.clones/<name>/` | userData: вход, чаты, настройки, кэш, MCP-конфиг; внутри `claude-config/` — папка Claude Code профиля (`claude-code/` рядом принадлежит Claude Desktop) |
 | Лаунчер | `/Applications/Claude <Name>.app` | Крошечный бандл со скриптом `clones run <name>`; значок с цветной плашкой. Для Dock, Spotlight, Raycast |
 | Копия Claude.app | `~/.clones/.bundles.noindex/<name>/Claude <Name>.app` | Чтобы запущенный профиль в Dock и ⌘Tab назывался «Claude <Name>» |
 
@@ -71,7 +71,7 @@ bundle id); argv читается через `sysctl(KERN_PROCARGS2)`, а не `
 
 | Команда | Описание |
 |---|---|
-| `add <name> [--color <hex>] [--icon <path>] [--title <s>] [--clone-mcp-from <p>] [--no-isolate-claude-code] [--no-app] [--no-copy]` | Профиль, лаунчер и копия Claude. `--clone-mcp-from` копирует только `mcpServers`. По умолчанию профиль получает свой `CLAUDE_CONFIG_DIR` (`<профиль>/claude-code`) для вкладки Code; `--no-isolate-claude-code` — общий `~/.claude`. Имя: латиница, цифры, `-`, `_`, `.`; до 32 символов |
+| `add <name> [--color <hex>] [--icon <path>] [--title <s>] [--clone-mcp-from <p>] [--no-isolate-claude-code] [--no-app] [--no-copy]` | Профиль, лаунчер и копия Claude. `--clone-mcp-from` копирует только `mcpServers`. По умолчанию профиль получает свой `CLAUDE_CONFIG_DIR` (`<профиль>/claude-config`) для вкладки Code; `--no-isolate-claude-code` — общий `~/.claude`. Имя: латиница, цифры, `-`, `_`, `.`; до 32 символов |
 | `ls [--json] [--no-size]` | Статус, PID, размер, число MCP-серверов, лаунчер. В `--json` ещё `bundleCopy`, `bundleVersion`, `unmanaged`. Цвета — только в терминале; `NO_COLOR` отключает |
 | `run <name>` | Запустить профиль или показать окно запущенного |
 | `login <name> [-y] [--no-restore]` | Закрыть остальные инстансы, запустить нужный единственным, после Enter вернуть остальные |
@@ -102,7 +102,8 @@ bundle id); argv читается через `sysctl(KERN_PROCARGS2)`, а не `
 | Путь | Что |
 |---|---|
 | `~/.clones/<name>/` | userData профиля |
-| `~/.clones/<name>/claude-code/` | папка Claude Code профиля (`CLAUDE_CONFIG_DIR`) |
+| `~/.clones/<name>/claude-config/` | папка Claude Code профиля (`CLAUDE_CONFIG_DIR`) |
+| `~/.clones/<name>/claude-code/` | собственная папка Claude Desktop со скачанными им версиями Claude Code; всё остальное в ней Desktop удаляет при их обновлении, поэтому `CLAUDE_CONFIG_DIR` туда указывать нельзя |
 | `~/.clones/.bundles.noindex/<name>/` | копия Claude.app |
 | `~/.clones/.icons/` | копии картинок из `--icon` |
 | `~/.clones/.config.json` | метаданные: цвет, иконка, имя лаунчера, `env` профиля, `claudeApp` |
@@ -116,7 +117,7 @@ bundle id); argv читается через `sysctl(KERN_PROCARGS2)`, а не `
 
 Переменные окружения: `CLONES_CLAUDE_APP` (путь к Claude.app), `CLONES_HOME` (вместо `~/.clones`),
 `CLONES_APPS_DIR` (куда класть лаунчеры), `CLONES_DEFAULT_USER_DATA`, `CLONES_LANG` (`en`/`ru`).
-Поле `env` профиля в `config.json` — переменные для процесса Claude (так работает изоляция Claude Code). На CLI `claude` в терминале это не влияет: чтобы он работал с папкой профиля, запускайте `CLAUDE_CONFIG_DIR="<профиль>/claude-code" claude`.
+Поле `env` профиля в `config.json` — переменные для процесса Claude (так работает изоляция Claude Code). На CLI `claude` в терминале это не влияет: чтобы он работал с папкой профиля, запускайте `CLAUDE_CONFIG_DIR="<профиль>/claude-config" claude`.
 
 ## Ограничения
 

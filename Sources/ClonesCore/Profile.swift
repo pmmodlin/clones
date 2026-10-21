@@ -9,6 +9,9 @@ public struct Profile: Equatable, Sendable {
 
     public var isDefault: Bool { name == Profile.defaultName }
     public var mcpConfigFile: URL { dataDir.appendingPathComponent("claude_desktop_config.json") }
+    /// The profile's own Claude Code folder (CLAUDE_CONFIG_DIR). Not `claude-code`: that one belongs to Claude Desktop.
+    public var claudeCodeDir: URL { dataDir.appendingPathComponent(Profile.claudeCodeDirName, isDirectory: true) }
+    public static let claudeCodeDirName = "claude-config"
 
     /// Launcher / Dock name: “Claude Work”.
     public var appTitle: String {

@@ -18,7 +18,7 @@ Each profile consists of three things:
 
 | What | Where | Why |
 |---|---|---|
-| Data | `~/.clones/<name>/` | userData: sign-in, chats, settings, cache, MCP config; `claude-code/` inside is the profile's Claude Code folder |
+| Data | `~/.clones/<name>/` | userData: sign-in, chats, settings, cache, MCP config; `claude-config/` inside is the profile's Claude Code folder (`claude-code/` next to it belongs to Claude Desktop) |
 | Launcher | `/Applications/Claude <Name>.app` | A tiny bundle with a script calling `clones run <name>`; icon with a colored badge. For the Dock, Spotlight, Raycast |
 | Claude.app copy | `~/.clones/.bundles.noindex/<name>/Claude <Name>.app` | So the running profile is called “Claude <Name>” in the Dock and ⌘Tab |
 
@@ -73,7 +73,7 @@ Quitting (`kill`) escalates: the “quit” Apple Event (like ⌘Q) → SIGTERM 
 
 | Command | Description |
 |---|---|
-| `add <name> [--color <hex>] [--icon <path>] [--title <s>] [--clone-mcp-from <p>] [--no-isolate-claude-code] [--no-app] [--no-copy]` | Profile, launcher and Claude copy. `--clone-mcp-from` copies only `mcpServers`. By default the profile gets its own `CLAUDE_CONFIG_DIR` (`<profile>/claude-code`) for the Code tab; `--no-isolate-claude-code` shares `~/.claude`. Names: Latin letters, digits, `-`, `_`, `.`; up to 32 characters |
+| `add <name> [--color <hex>] [--icon <path>] [--title <s>] [--clone-mcp-from <p>] [--no-isolate-claude-code] [--no-app] [--no-copy]` | Profile, launcher and Claude copy. `--clone-mcp-from` copies only `mcpServers`. By default the profile gets its own `CLAUDE_CONFIG_DIR` (`<profile>/claude-config`) for the Code tab; `--no-isolate-claude-code` shares `~/.claude`. Names: Latin letters, digits, `-`, `_`, `.`; up to 32 characters |
 | `ls [--json] [--no-size]` | Status, PID, size, MCP server count, launcher. `--json` adds `bundleCopy`, `bundleVersion`, `unmanaged`. Colors only in a terminal; `NO_COLOR` turns them off |
 | `run <name>` | Start a profile or bring its window forward |
 | `login <name> [-y] [--no-restore]` | Quit the other instances, start this one alone, restart the others after Enter |
@@ -104,7 +104,8 @@ Quitting (`kill`) escalates: the “quit” Apple Event (like ⌘Q) → SIGTERM 
 | Path | What |
 |---|---|
 | `~/.clones/<name>/` | the profile's userData |
-| `~/.clones/<name>/claude-code/` | the profile's Claude Code folder (`CLAUDE_CONFIG_DIR`) |
+| `~/.clones/<name>/claude-config/` | the profile's Claude Code folder (`CLAUDE_CONFIG_DIR`) |
+| `~/.clones/<name>/claude-code/` | Claude Desktop's own folder with the Claude Code versions it downloads; Desktop deletes everything else in it when it updates them, so never point `CLAUDE_CONFIG_DIR` there |
 | `~/.clones/.bundles.noindex/<name>/` | Claude.app copy |
 | `~/.clones/.icons/` | copies of `--icon` pictures |
 | `~/.clones/.config.json` | metadata: color, icon, launcher name, profile `env`, `claudeApp` |
@@ -118,7 +119,7 @@ in the metadata (`LayoutMigration`). While an instance is open it keeps using th
 
 Environment variables: `CLONES_CLAUDE_APP` (path to Claude.app), `CLONES_HOME` (instead of `~/.clones`),
 `CLONES_APPS_DIR` (where launchers go), `CLONES_DEFAULT_USER_DATA`, `CLONES_LANG` (`en`/`ru`).
-A profile's `env` field in `config.json` is passed to the Claude process (that is how the Claude Code isolation works). The terminal `claude` CLI is not affected: run it with `CLAUDE_CONFIG_DIR="<profile>/claude-code" claude` to use a profile's folder.
+A profile's `env` field in `config.json` is passed to the Claude process (that is how the Claude Code isolation works). The terminal `claude` CLI is not affected: run it with `CLAUDE_CONFIG_DIR="<profile>/claude-config" claude` to use a profile's folder.
 
 ## Limitations
 

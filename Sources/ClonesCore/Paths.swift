@@ -5,7 +5,7 @@ import Foundation
 /// Standard layout, everything under `~/.clones`:
 ///
 ///     ~/.clones/<profile>/              userData of the profile (sign-in, chats, settings, MCP config)
-///     ~/.clones/<profile>/claude-code/  its Claude Code folder (CLAUDE_CONFIG_DIR)
+///     ~/.clones/<profile>/claude-config/  its Claude Code folder (CLAUDE_CONFIG_DIR); claude-code/ next to it is Claude Desktop's
 ///     ~/.clones/.config.json            metadata
 ///     ~/.clones/.bundles.noindex/       Claude.app copies named after profiles
 ///     ~/.clones/.icons/                 custom icons
